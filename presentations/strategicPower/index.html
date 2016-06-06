@@ -9,50 +9,170 @@
       @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
 
       body { font-family: 'Droid Serif'; }
-      h1, h2, h3 {
-        font-family: 'Yanone Kaffeesatz';
-        font-weight: normal;
-      }
-      .remark-slide-content h1 {
-	 font-size: 70px;	
-      }
+      h1, h2, h3 { font-family: 'Yanone Kaffeesatz'; font-weight: normal; }
+      .remark-slide-content h1 { font-size: 4em;	}
+      .remark-slide-content li { font-size: 2.2em;}
       .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
-      .remark-code { font-size: 40px; }
+      .remark-code { font-size: 2.2em; }
+      .title {font-size: 3.3em; color:#FFFFFF;font-weight:bold;letter-spacing:0.05em}
+      .author {font-size: 2.2em; color:#AAAAAA;font-weight:bold;letter-spacing:0.02em}
+      .quote { box-shadow: 0 0 30px #777; padding: 1.5em; font-size: 2.2em; font-style: italic }
+      .huge { font-size: 6em; }
     </style>
   </head>
   <body>
     <textarea id="source">
+class: center, middle
+background-color: black
+.title[Programming Strategically with the Principle of Least Power]
 
-# Highlighted javascript
+.author[Leif Wickland]
 
-```javascript
-describe("inifier", function() {
-  describe("isDevelopment", function() {
-  });
-});
-5
-6
-7
-8
-9
-10
-11
-```
-
+<img width="60%" src="assets\rubicon-logo.svg">
 ---
+background-image: url("assets/IMG_20160417_170409.jpg")
+padding: 0px 0px 0px 0px
+background-size: contain;
+background-repeat: no-repeat;
+background-position: center;
+---
+# Credit to Li Haoyi
 
-# Highlighted Scala
+.right[<img src="assets/haoyi.jpg" width=300px; style="float: right; margin: 10px">]
+- Strongly inspired by his [blog](http://www.lihaoyi.com/).
+- Wicked smart. Scala.js. Amonite.
+- Good parts are his.
+- Anything stupid is mine.
+- Originally he wrote about Scala.
+---
+class: left, middle
+background-image: url(assets/icbm.jpg)
+# Strategic<br>Power
+---
+# Principle of Least Power
 
-```scala
-object HelloWorld {
-   /* This is my first java program.  
-    * This will print 'Hello World' as the output
-    */
-   def main(args: Array[String]) {
-      println("Hello, world!") // prints Hello World
-   }
+.quote[
+Given a choice of solutions, pick the least powerful solution capable of solving your problem
+]
+
+&mdash; [Li Haoyi](http://www.lihaoyi.com/post/StrategicScalaStylePrincipleofLeastPower.html)
+---
+# Developers seek power &amp; flexibility
+
+.right[<img src="https://m.popkey.co/5e278e/kdKdw.gif" width=500px; style="float: right; margin: 10px">]
+
+- _My design is so flexible!_
+- _I'm not exactly sure how I'm going to do it, so&hellip;_
+- _The requirements might change, so&hellip;_
+---
+# With Great Power
+
+- If it can do anything it _might do anything_
+- Bigger possible space to consider
+---
+# Motivation
+
+.quote[
+A restricted solution that &hellip; can only do a few things is straightforward for someone to inspect, analyze and manipulate later.
+]
+
+&mdash; [Li Haoyi](http://www.lihaoyi.com/post/StrategicScalaStylePrincipleofLeastPower.html)
+---
+# Essay
+
+.quote[
+transitive verb<br>
+to try to do, perform, or deal with
+]
+
+## Can the principle of least power be applied to other languages?
+---
+class: center, middle
+<img src="assets/low-hanging-fruit.gif" width="100%">
+---
+```cs
+switch (n) {
+  case 1:
+    cost += 25; break;
+  case 2:
+    cost += 25; goto case 1;
+  case 3:
+    cost += 50; goto case 1;
+  default:
+    Console.WriteLine("Invalid selection.");
+    break;
 }
 ```
+From [MSDN `goto` docs](https://msdn.microsoft.com/en-us/library/13940fs2.aspx)
+---
+class: center, middle
+.huge[
+PHP 5.3 added `goto` in 2009
+]
+<img src="assets/jawdrop.gif" style="visibility: hidden">
+---
+class: center, middle
+.huge[
+PHP 5.3 added `goto` in 2009
+]
+<img src="assets/jawdrop.gif">
+---
+```java
+Baz baz = null;
+while (true) {
+  // 20 lines calculating foo
+  if (!validate(foo))
+    break;
+  // 30 lines calculting bar
+  if (!validate(bar))
+    break;
+  // Another 30 lines calculating other values
+  baz = new Baz(foo, bar, ...);
+  break;
+}
+return baz;
+```
+---
+```java
+Foo foo = calculateFoo();
+Bar bar = calculateBar();
+// Another few lines calculating other values
+if (validate(foo) &&
+    validate(bar) &&
+    /* validate some other things */) {
+  return new Baz(foo, bar, ...);
+} else {
+  return null;
+}
+```
+---
+# Appendix follows
+---
+# TODO: Keep or drop?
+```c
+OSStatus err;
+// 30 lines of awesome elided
+if ((err = SSLHashSHA1.update(...)) != 0)
+    goto fail;
+if ((err = SSLHashSHA1.update(...)) != 0)
+    goto fail;
+    goto fail;
+// 20 more lines of awesome elided
+fail:
+return err;
+```
+from [sslKeyExchange.c](http://opensource.apple.com/source/Security/Security-55471/libsecurity_ssl/lib/sslKeyExchange.c)
+---
+# Better?
+```c
+OSStatus err;
+// 30 lines of awesome elided
+(err = SSLHashSHA1.update(...)) == 0 &&
+(err = SSLHashSHA1.update(...)) == 0 &&
+// 20 lines more awesome
+return err;
+```
+---
     </textarea>
     <script src="https://gnab.github.io/remark/downloads/remark-latest.min.js"> </script>
     <script>
@@ -81,16 +201,18 @@ var slideshow = remark.create({
     click: false
   },
 
-  // Customize slide number label, either using a format string..
-  slideNumberFormat: 'Slide %current% of %total%',
   // .. or by using a format function
   slideNumberFormat: function (current, total) {
-    return 'Slide ' + current + ' of ' + total;
+    if (current == 1) {
+      return '';
+    } else {
+      return '<img src="assets/rubicon-dots.png" width="100px;"><br>Slide ' + current + ' of ' + total;
+    }
   },
 
   // Enable or disable counting of incremental slides in the slide counting
   countIncrementalSlides: true
-}); 
+});
     </script>
   </body>
 </html>
