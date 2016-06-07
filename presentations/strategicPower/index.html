@@ -17,7 +17,8 @@
       .title {font-size: 3.3em; color:#FFFFFF;font-weight:bold;letter-spacing:0.05em}
       .author {font-size: 2.2em; color:#AAAAAA;font-weight:bold;letter-spacing:0.02em}
       .quote { box-shadow: 0 0 30px #777; padding: 1.5em; font-size: 2.2em; font-style: italic }
-      .huge { font-size: 6em; }
+      .huge { font-size: 6em; text-align: center }
+      .medium { font-size: 4em; text-align: center }
     </style>
   </head>
   <body>
@@ -105,6 +106,11 @@ switch (n) {
 ```
 From [MSDN `goto` docs](https://msdn.microsoft.com/en-us/library/13940fs2.aspx)
 ---
+.huge[
+1968: _Go To Statement Considered Harmful_
+]
+I promised you details about our languages becoming more powerful in _recent_ years.
+---
 class: center, middle
 .huge[
 PHP 5.3 added `goto` in 2009
@@ -146,7 +152,74 @@ if (validate(foo) &&
 }
 ```
 ---
-# Appendix follows
+class: middle, center
+.huge[
+Immutability changes everything
+]
+---
+.All major
+---
+class: middle
+```javascript
+var label;
+if (havingGoodDay(bob)) label = "ok";
+else label = "bitter";
+
+// ----- or -----
+
+const label =
+  (havingGoodDay(bob)) ?
+  "good" :
+  "bitter";
+```
+---
+background-image: url("assets/const.png")
+padding: 0px 0px 0px 0px
+background-size: contain;
+background-repeat: no-repeat;
+background-position: center;
+---
+```javascript
+function tellMeAboutYourFeels() {
+  if (goodDay(bob)) return "hawt";
+  if (badDay(bob)) return "bitter";
+  return "meh";
+}
+
+// ----- or -----
+function tellMeAboutYourFeels() {
+  var feels = "meh";
+  if (goodDay(bob)) feels = "hawt";
+  else if (badDay(bob)) feels = "bitter";
+  return feels;
+}
+```
+---
+# Prefer Immutabilty
+- As far as possible
+- Except if you really need the perf improvement
+- Spoiler: Very little of your code does
+- Limit the scope of mutabilty
+---
+background-image: url("assets/doublej.jpg")
+padding: 0px 0px 0px 0px
+background-size: contain;
+background-repeat: no-repeat;
+background-position: center;
+---
+```java
+const ImmutableList<String> names = myBffs();
+// ----- or -----
+ImmutableList<String> names = myBffs();
+// ----- or -----
+const List<String> names = myBffs();
+// ----- or -----
+List<String> names = myBffs();
+```
+<image src="assets/friends.png" width=200px style="float:left; margin: 0 20px 20px 20px;">
+.medium[No double mutability]
+---
+# TODO: Published interfaces
 ---
 # TODO: Keep or drop?
 ```c
