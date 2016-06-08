@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Title</title>
+    <title>Programming Strategically with the Principle of Least Power</title>
     <meta charset="utf-8">
     <style>
       @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
@@ -12,6 +12,7 @@
       h1, h2, h3 { font-family: 'Yanone Kaffeesatz'; font-weight: normal; }
       .remark-slide-content h1 { font-size: 4em;	}
       .remark-slide-content li { font-size: 2.2em;}
+      .remark-slide-content li ul li { font-size: 2.2em;}
       .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
       .remark-code { font-size: 2.2em; }
       .title {font-size: 3.3em; color:#FFFFFF;font-weight:bold;letter-spacing:0.05em}
@@ -19,6 +20,8 @@
       .quote { box-shadow: 0 0 30px #777; padding: 1.5em; font-size: 2.2em; font-style: italic }
       .huge { font-size: 6em; text-align: center }
       .medium { font-size: 4em; text-align: center }
+      .footnote { position:absolute; bottom: 1em; left: 1em; font-size: 1em; }
+      .koan { color: #AA00AA; -webkit-text-stroke: 2px #000000 }
     </style>
   </head>
   <body>
@@ -157,14 +160,13 @@ class: middle, center
 Immutability changes everything
 ]
 ---
-.All major
----
-class: middle
 ```javascript
 var label;
 if (havingGoodDay(bob)) label = "ok";
 else label = "bitter";
-
+```
+--
+```javascript
 // ----- or -----
 
 const label =
@@ -178,20 +180,30 @@ padding: 0px 0px 0px 0px
 background-size: contain;
 background-repeat: no-repeat;
 background-position: center;
+.footnote[From [caniuse.com](http://caniuse.com/#feat=const)]
+---
+background-image: url("assets/let.png")
+padding: 0px 0px 0px 0px
+background-size: contain;
+background-repeat: no-repeat;
+background-position: center;
+.footnote[From [caniuse.com](http://caniuse.com/#feat=let)]
 ---
 ```javascript
-function tellMeAboutYourFeels() {
-  if (goodDay(bob)) return "hawt";
-  if (badDay(bob)) return "bitter";
-  return "meh";
-}
-
-// ----- or -----
 function tellMeAboutYourFeels() {
   var feels = "meh";
   if (goodDay(bob)) feels = "hawt";
   else if (badDay(bob)) feels = "bitter";
   return feels;
+}
+```
+--
+```javascript
+// ----- or -----
+function tellMeAboutYourFeels() {
+  if (goodDay(bob)) return "hawt";
+  if (badDay(bob)) return "bitter";
+  return "meh";
 }
 ```
 ---
@@ -208,23 +220,139 @@ background-repeat: no-repeat;
 background-position: center;
 ---
 ```java
-const ImmutableList<String> names = myBffs();
+const ImmutableList&lt;String&gt; names = myBffs();
 // ----- or -----
-ImmutableList<String> names = myBffs();
+ImmutableList&lt;String&gt; names = myBffs();
 // ----- or -----
-const List<String> names = myBffs();
+const List&lt;String&gt; names = myBffs();
 // ----- or -----
-List<String> names = myBffs();
+List&lt;String&gt; names = myBffs();
 ```
 <image src="assets/friends.png" width=200px style="float:left; margin: 0 20px 20px 20px;">
-.medium[No double mutability]
+--
+.medium[
+No Double
+Mutability]
 ---
-# TODO: Published interfaces
+class: center, middle
+.medium[
+**Thought experiment:**
+
+What's the _least powerful_ way to expose functionality within your project?
+]
 ---
-Appendix: Orphanage for lost slides
+# Haoyi's Hierarchy of Interfaces
+- Static method with **standard** types
+- Static method with **custom** types
+- Class which must be **instantiated** to be called
+- Abstract class which must be **subclassed**
 ---
-# The Closure Koan
-http://c2.com/cgi/wiki?ClosuresAndObjectsAreEquivalent
+```scala
+def hasCycle[N](nodes: Set[N],
+  connectsTo: N => Set[N]): Boolean
+```
+--
+```scala
+// ----- or -----
+
+class Node(name: String,
+  connectsTo: mutable.Set[Node])
+
+def hasCycle(nodes: Set[Node]): Boolean
+```
+---
+```scala
+class Graph {
+  def addEdge(from: String, to: String)
+  def hasCycle: Boolean
+}
+```
+--
+```scala
+// ----- or -----
+
+abstract class GraphBase[N] {
+  abstract def getNodes: Set[N]
+  abstract def connectsTo(node: N): Set[N]
+  def hasCycle: Boolean
+}
+```
+---
+class: koan
+background-image: url(assets/two-monks-blur-16-9.jpg)
+--
+.footnote[By Anton van Straaten From [MIT CSAIL list](http://people.csail.mit.edu/gregs/ll1-discuss-archive-html/msg03277.html) via [C2](http://c2.com/cgi/wiki?ClosuresAndObjectsAreEquivalent)]
+.huge[
+The Closure Koan]
+???
+The venerable master Qc Na was walking with his student, Anton. Hoping to prompt the master into a discussion, Anton said "Master, I have heard that objects are a very good thing - is this true?"
+--
+.medium[
+Objects are good]
+???
+Qc Na looked pityingly at his student and replied, "Foolish pupil - objects are merely a poor man's closures."
+--
+.medium[
+Poor man's closures]
+???
+Chastised, Anton took his leave from his master and returned to his cell, intent on studying closures. He carefully read the entire "Lambda: The Ultimate..." series of papers and its cousins, and implemented a small Scheme interpreter with a closure-based object system. He learned much, and looked forward to informing his master of his progress.
+--
+.medium[
+_Lambda: The Ultimate_]
+???
+On his next walk with Qc Na, Anton attempted to impress his master by saying "Master, I have diligently studied the matter, and now understand that objects are truly a poor man's closures."
+--
+.medium[
+Closures are truly good]
+???
+Qc Na responded by hitting Anton with his stick, saying "When will you learn? Closures are a poor man's object."
+--
+.medium[
+Poor man's objects]
+???
+At that moment, Anton became enlightened.
+---
+# Closures vs Objects
+- Both wrap (potentially mutable) state
+- Both encapsulate data 
+- Both have methods which can be invoked
+- Closure only has one method
+- You can fake more with stringy dispatch
+
+--
+- Please don't
+- Closure "constructors" are plausible
+---
+# For _Less Power_ Pass Closures, not Things
+- Generally if a function needs a value, we'll pass that to it
+- Often gives the function too much power
+- Can mutate the object if it's mutable
+- Can access more of object than strictly needed
+---
+# For _Less Power_ Pass Closures, not Things
+- What if instead we pass most restrictive, least powerful thing we can think of: a closure
+- Provides a nice abstraction layer without explicitly defining interface
+- Receiver can't know any more than closure will tell it
+- Shared interface without inheritance
+--- 
+# For _Less Power_ Pass Closures, not Things
+- Please don't take this too far
+---
+```scala
+class Node(name: String,
+  connectsTo: mutable.Set[Node])
+
+def hasCycle(nodes: Set[Node]): Boolean
+
+// ----- vs -----
+
+def hasCycle[N](nodes: Set[N],
+  connectsTo: N => Set[N]): Boolean
+
+hasCycle(nodes, node => node.connectsTo)
+```
+---
+# Appendix: Orphanage for lost slides
 ---
 # TODO: Keep or drop?
 ```c
