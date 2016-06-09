@@ -11,8 +11,8 @@
       body { font-family: 'Droid Serif'; }
       h1, h2, h3 { font-family: 'Yanone Kaffeesatz'; font-weight: normal; }
       .remark-slide-content h1 { font-size: 4em;	}
+      .remark-slide-content li ul li { font-size: 1em;}
       .remark-slide-content li { font-size: 2.2em;}
-      .remark-slide-content li ul li { font-size: 2.2em;}
       .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
       .remark-code { font-size: 2.2em; }
       .title {font-size: 3.3em; color:#FFFFFF;font-weight:bold;letter-spacing:0.05em}
@@ -314,29 +314,36 @@ At that moment, Anton became enlightened.
 ---
 # Closures vs Objects
 - Both wrap (potentially mutable) state
-- Both encapsulate data 
+- Both encapsulate data
 - Both have methods which can be invoked
+
+--
+- Closure "constructors" are plausible
 - Closure only has one method
 - You can fake more with stringy dispatch
 
 --
 - Please don't
-- Closure "constructors" are plausible
+
 ---
-# For _Less Power_ Pass Closures, not Things
-- Generally if a function needs a value, we'll pass that to it
+# For _Less Power_ Pass Closures, not Objects
+- Generally if a function needs a thing which can do stuff, we'll pass that object to it
 - Often gives the function too much power
-- Can mutate the object if it's mutable
 - Can access more of object than strictly needed
+- Can mutate the object if it's mutable
 ---
-# For _Less Power_ Pass Closures, not Things
-- What if instead we pass most restrictive, least powerful thing we can think of: a closure
+# For _Less Power_ Pass Closures, not Objects
+- What if instead we pass most the restrictive, least powerful thing?
 - Provides a nice abstraction layer without explicitly defining interface
-- Receiver can't know any more than closure will tell it
+- Receiver can only take one action with closure
 - Shared interface without inheritance
---- 
-# For _Less Power_ Pass Closures, not Things
-- Please don't take this too far
+
+---
+class: middle
+.huge[
+Please don't take this too far
+]
+
 ---
 ```scala
 class Node(name: String,
@@ -351,6 +358,70 @@ def hasCycle[N](nodes: Set[N],
 
 hasCycle(nodes, node => node.connectsTo)
 ```
+---
+```scala
+abstract class GraphBase[N] {
+  abstract def getNodes: Set[N]
+  abstract def connectsTo(node: N): Set[N]
+  def hasCycle: Boolean
+}
+
+// ----- vs -----
+
+def hasCycle[N](nodes: Set[N],
+  connectsTo: N => Set[N]): Boolean
+
+hasCycle(nodes, node => node.connectsTo)
+```
+---
+# The Better Option: Simpler Error Handling
+- `Option`, `Optional`, or `Maybe` in most langauges
+    - If not in standard then a third party library
+- Allows you to indicate either a value **or** failure
+- No confusion which is which
+  - _Is that_ `-1` _a value or a failure code?_
+- Short circuit evaluation bails out on error
+---
+```java
+Baz baz = null;
+while (true) {
+  // 20 lines calculating foo
+  if (!validate(foo))
+    break;
+  // 30 lines calculting bar
+  if (!validate(bar))
+    break;
+  // Another 30 lines calculating other values
+  baz = new Baz(foo, bar, ...);
+  break;
+}
+return baz;
+```
+---
+```java
+Optional<Foo> makeFoo(...) { ... }
+Optional<Bar> makeBar(...) { ... }
+
+return
+makeFoo(...).flatMap(foo ->
+  makeBar(...).flatMap(bar ->
+    /* a few more functions like that*/
+    makeMore.map(more ->
+      new Baz(foo, bar, ..., more);
+)));
+```
+---
+# The Better Option: Simpler Error Handling
+- Avoids common pitfalls:
+  - Not supposed to use `throw` for flow control
+  - `null` is the _Billion Dollar Mistake_ [according to inventor](https://www.infoq.com/presentations/Null-References-The-Billion-Dollar-Mistake-Tony-Hoare)
+  - Don't have to remember to check error code
+---
+# The Better Option: Simpler Error Handling
+- Not a panacea
+- We can't say what went wrong
+---
+background-image: url("assets/LWW_8015.jpg")
 ---
 # Appendix: Orphanage for lost slides
 ---
