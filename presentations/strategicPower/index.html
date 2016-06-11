@@ -56,7 +56,7 @@ background-image: url(assets/icbm.jpg)
 # Principle of Least Power
 
 .quote[
-Given a choice of solutions, pick the least powerful solution capable of solving your problem
+Given a choice of solutions, pick the least powerful solution capable of solving your problem.
 ]
 
 &mdash; [Li Haoyi](http://www.lihaoyi.com/post/StrategicScalaStylePrincipleofLeastPower.html)
@@ -82,6 +82,18 @@ A restricted solution that &hellip; can only do a few things is straightforward 
 
 &mdash; [Li Haoyi](http://www.lihaoyi.com/post/StrategicScalaStylePrincipleofLeastPower.html)
 ---
+# Vocabulary check
+## _Power_
+
+--
+## _Restriction_
+
+--
+## _Possibility_
+
+--
+## _Constraint_
+---
 # Essay
 
 .quote[
@@ -89,7 +101,13 @@ transitive verb<br>
 to try to do, perform, or deal with
 ]
 
-## Can the principle of least power be applied to other languages?
+## Can we program stategically using the principle of least power in other languages, too?
+---
+# What I'm not talking about
+- Picking a language
+- Picking a framework
+- Picking a library
+- Most of us don't get to pick those on a daily basis
 ---
 class: center, middle
 <img src="assets/low-hanging-fruit.gif" width="100%">
@@ -129,35 +147,44 @@ PHP 5.3 added `goto` in 2009
 ```java
 Baz baz = null;
 while (true) {
-  // 20 lines calculating foo
-  if (!validate(foo))
-    break;
-  // 30 lines calculting bar
-  if (!validate(bar))
-    break;
-  // Another 30 lines calculating other values
-  baz = new Baz(foo, bar, ...);
+  // 20 lines calculating foo&hellip;
+  if (!foo.isValid()) break;
+  // 30 lines calculting bar&hellip;
+  if (!var.isValid()) break;
+  // Another 30 lines calculating wah&hellip;
+  if (!wah.isValid()) break;
+  baz = new Baz(foo, bar, wah);
   break;
 }
 return baz;
 ```
 ---
 ```java
-Foo foo = calculateFoo();
-Bar bar = calculateBar();
-// Another few lines calculating other values
-if (validate(foo) &&
-    validate(bar) &&
-    /* validate some other things */) {
-  return new Baz(foo, bar, ...);
+final Foo foo = calculateFoo();
+final Bar bar = calculateBar();
+final Wah wah = calculateWah();
+
+if (foo.isValid() &&
+    bar.isValid() &&
+    wah.isValid()) {
+  return new Baz(foo, bar, wah);
 } else {
   return null;
 }
 ```
 ---
+.huge[
+Superior because it constrains the potential complexity
+]
+---
 class: middle, center
 .huge[
 Immutability changes everything
+]
+---
+class: middle, center
+.huge[
+Easier to reason about because fewer possibilities
 ]
 ---
 ```javascript
@@ -220,13 +247,13 @@ background-repeat: no-repeat;
 background-position: center;
 ---
 ```java
-const ImmutableList&lt;String&gt; names = myBffs();
-// ----- or -----
-ImmutableList&lt;String&gt; names = myBffs();
+List&lt;String&gt; names = myBffs();
 // ----- or -----
 const List&lt;String&gt; names = myBffs();
 // ----- or -----
-List&lt;String&gt; names = myBffs();
+ImmutableList&lt;String&gt; names = myBffs();
+// ----- or -----
+const ImmutableList&lt;String&gt; names = myBffs();
 ```
 <image src="assets/friends.png" width=200px style="float:left; margin: 0 20px 20px 20px;">
 --
@@ -238,18 +265,78 @@ class: center, middle
 .medium[
 **Thought experiment:**
 
-What's the _least powerful_ way to expose functionality within your project?
+What's the _simplest_ interface to your library?
 ]
 ---
-# Haoyi's Hierarchy of Interfaces
-- Static method with **standard** types
-- Static method with **custom** types
-- Class which must be **instantiated** to be called
-- Abstract class which must be **subclassed**
+class: center, middle
+.medium[
+Design a simple interface to a graph library to find cycles between nodes.
+]
+---
+class: middle
+// TODO java
+```scala
+class Node {name: String)
+
+class Graph {
+  def addEdge(from: Node, to: Node)
+  def hasCycle: Boolean
+}
+```
+---
+# Looks **Simple** but&hellip;
+- Have to instantiate a Graph and Nodes
+- Can only be used with these data types
+- Node can't store anything but a string
+- Limited interface for defining graph's connections
+---
+# How can we make it better?
+- Abstract `Node` type
+  - User can define it to contain whatever they want
+- Abstract `Graph` type
+  - Allow user to define connections however they want
+
+//TODO fix wording
+---
+class: middle
+```java
+abstract class Node {
+  String name()
+}
+
+abstract class GraphBase<Node> {
+  Set<Node> getNodes()
+  Set<Node> connectsTo(Node node)
+  boolean hasCycle()
+}
+```
+---
+# Typical Approach
+- Most of us have been taught OOP-y design
+- Feels natural to have a class for each "thing"
+---
+.huge[
+How would we reduce the setup?
+]
+<br>
+--
+.medium[
+Avoid instantiation and subclassing?
+]
 ---
 ```scala
-def hasCycle[N](nodes: Set[N],
-  connectsTo: N => Set[N]): Boolean
+object Graph {
+  def hasCycle[N](nodes: Set[N],
+    connectsTo: N => Set[N]): Boolean
+}
+```
+```java
+class Graph {
+  static boolean hasCycle<N>(
+    Set<N> nodes,
+    Function<N, Set<N>> connectsTo
+  )
+}
 ```
 --
 ```scala
@@ -278,9 +365,100 @@ abstract class GraphBase[N] {
 }
 ```
 ---
+# Haoyi's Ranking of Interfaces
+1. Static method with **standard** types
+2. Static method with **custom** types
+3. Class which must be **instantiated** to be called
+4. Abstract class which must be **subclassed**
+???
+Think in terms of usabilty for the person calling this code.
+Hopefully, you are probably the first user of your code when you write tests.
+More likely to write tests
+---
+TOOD add lambda image
+???
+Now that Java has added closures nearly every language has closures
+
+Difference between closure and lambda
+---
+# Closure vs Class
+
+--
+- Both wrap (potentially mutable) state
+- Both encapsulate data
+- Both have method(s) which can be invoked
+
+--
+- Closure "constructors" are plausible
+- Closure only has one method
+- You can fake more with stringy dispatch
+
+--
+  - Please don't
+
+---
+# Passing Classes to Functions
+- Generally if a function needs a thing which can do stuff, we'll pass that object to it
+- Often gives the function too much power
+    - Can access data that isn't related
+    - Can access methods that aren't needed
+    - May need to understand object's innards to get at needed data
+        - May break if object changes
+  - Can potentially mutate the object
+---
+# Pass Closures, not Classes
+- What if instead we pass most the restrictive, least powerful thing?
+- Provides a nice abstraction layer without explicitly defining interface
+- Receiver can only take one action with closure
+- Shared interface without inheritance
+---
+# Architectural hotspot patterns
+- Unstable interface
+- Implicit cross-module dependency
+- Unhealthy interface inheritance hierarchy
+- Cross-module cycle
+- Cross-package cycle
+
+.footnote[[Adrian Colyer's blog](https://blog.acolyer.org/2016/06/10/hotspot-patterns-the-formal-definition-and-automatic-detection-of-architecture-smells/)]
+---
+// TODO to Java
+```scala
+class Node(name: String,
+  connectsTo: mutable.Set[Node])
+
+def hasCycle(nodes: Set[Node]): Boolean
+
+// ----- vs -----
+
+def hasCycle[N](nodes: Set[N],
+  connectsTo: N => Set[N]): Boolean
+
+hasCycle(nodes, node => node.connectsTo)
+```
+---
+// TODO example sucks
+```scala
+abstract class GraphBase[N] {
+  abstract def getNodes: Set[N]
+  abstract def connectsTo(node: N): Set[N]
+  def hasCycle: Boolean
+}
+
+// ----- vs -----
+
+def hasCycle[N](nodes: Set[N],
+  connectsTo: N => Set[N]): Boolean
+
+hasCycle(nodes, node => node.connectsTo)
+```
+---
 class: koan
 background-image: url(assets/two-monks-blur-16-9.jpg)
---
+.huge[
+Koan]
+---
+class: koan
+background-image: url(assets/two-monks-blur-16-9.jpg)
 .footnote[By Anton van Straaten From [MIT CSAIL list](http://people.csail.mit.edu/gregs/ll1-discuss-archive-html/msg03277.html) via [C2](http://c2.com/cgi/wiki?ClosuresAndObjectsAreEquivalent)]
 .huge[
 The Closure Koan]
@@ -298,7 +476,7 @@ Poor man's closures]
 Chastised, Anton took his leave from his master and returned to his cell, intent on studying closures. He carefully read the entire "Lambda: The Ultimate..." series of papers and its cousins, and implemented a small Scheme interpreter with a closure-based object system. He learned much, and looked forward to informing his master of his progress.
 --
 .medium[
-_Lambda: The Ultimate_]
+Intent on Studying]
 ???
 On his next walk with Qc Na, Anton attempted to impress his master by saying "Master, I have diligently studied the matter, and now understand that objects are truly a poor man's closures."
 --
@@ -312,103 +490,85 @@ Poor man's objects]
 ???
 At that moment, Anton became enlightened.
 ---
-# Closures vs Objects
-- Both wrap (potentially mutable) state
-- Both encapsulate data
-- Both have methods which can be invoked
-
---
-- Closure "constructors" are plausible
-- Closure only has one method
-- You can fake more with stringy dispatch
-
---
-- Please don't
-
----
-# For _Less Power_ Pass Closures, not Objects
-- Generally if a function needs a thing which can do stuff, we'll pass that object to it
-- Often gives the function too much power
-- Can access more of object than strictly needed
-- Can mutate the object if it's mutable
----
-# For _Less Power_ Pass Closures, not Objects
-- What if instead we pass most the restrictive, least powerful thing?
-- Provides a nice abstraction layer without explicitly defining interface
-- Receiver can only take one action with closure
-- Shared interface without inheritance
-
----
-class: middle
-.huge[
-Please don't take this too far
-]
-
----
-```scala
-class Node(name: String,
-  connectsTo: mutable.Set[Node])
-
-def hasCycle(nodes: Set[Node]): Boolean
-
-// ----- vs -----
-
-def hasCycle[N](nodes: Set[N],
-  connectsTo: N => Set[N]): Boolean
-
-hasCycle(nodes, node => node.connectsTo)
-```
----
-```scala
-abstract class GraphBase[N] {
-  abstract def getNodes: Set[N]
-  abstract def connectsTo(node: N): Set[N]
-  def hasCycle: Boolean
-}
-
-// ----- vs -----
-
-def hasCycle[N](nodes: Set[N],
-  connectsTo: N => Set[N]): Boolean
-
-hasCycle(nodes, node => node.connectsTo)
-```
----
 # The Better Option: Simpler Error Handling
 - `Option`, `Optional`, or `Maybe` in most langauges
     - If not in standard then a third party library
+--
 - Allows you to indicate either a value **or** failure
 - No confusion which is which
   - _Is that_ `-1` _a value or a failure code?_
+--
+
 - Short circuit evaluation bails out on error
+- Pairs exquisitely with lambdas
+---
+class: middle
+.huge[
+`Option` is exactly either `Some(value)` or `None`
+]
+---
+```scala
+for (
+  x <- Some(5)
+  y <- Some(7)
+) yield x * y
+// Results in Some(35)
+```
+---
+```scala
+for (
+  x <- Some(5)
+  y <- None
+) yield x * y
+// Results in None
+```
 ---
 ```java
 Baz baz = null;
 while (true) {
-  // 20 lines calculating foo
-  if (!validate(foo))
-    break;
-  // 30 lines calculting bar
-  if (!validate(bar))
-    break;
-  // Another 30 lines calculating other values
-  baz = new Baz(foo, bar, ...);
+  // 20 lines calculating foo&hellip;
+  if (!foo.isValid()) break;
+  // 30 lines calculting bar&hellip;
+  if (!var.isValid()) break;
+  // Another 30 lines calculating wah&hellip;
+  if (!wah.isValid()) break;
+  baz = new Baz(foo, bar, wah);
   break;
 }
 return baz;
 ```
 ---
+# How can we make it better?
+- Separate functions to make `Foo`, `Bar`, and `Wah`
+
+--
+
+- Only create valid objects
+- Use `Option` to indicate possibility of invalid
+---
+```scala
+def makeFoo(): Option[Foo]
+def makeBar(): Option[Bar]
+def makeWah(): Option[Wah]
+
+for (
+  foo <- makeFoo()
+  bar <- makeBar()
+  wah <- makeWah()
+) yield new Baz(foo, bar, wah)
+```
+---
 ```java
-Optional<Foo> makeFoo(...) { ... }
-Optional<Bar> makeBar(...) { ... }
+Optional<Foo> makeFoo()
+Optional<Bar> makeBar()
+Optional<Wah> makeWah()
 
 return
-makeFoo(...).flatMap(foo ->
-  makeBar(...).flatMap(bar ->
-    /* a few more functions like that*/
-    makeMore.map(more ->
-      new Baz(foo, bar, ..., more);
-)));
+  makeFoo().flatMap(foo ->
+    makeBar().flatMap(bar ->
+      makeWah().map(wah ->
+				new Baz(foo, bar, ..., more);
+  )));
 ```
 ---
 # The Better Option: Simpler Error Handling
@@ -417,9 +577,25 @@ makeFoo(...).flatMap(foo ->
   - `null` is the _Billion Dollar Mistake_ [according to inventor](https://www.infoq.com/presentations/Null-References-The-Billion-Dollar-Mistake-Tony-Hoare)
   - Don't have to remember to check error code
 ---
-# The Better Option: Simpler Error Handling
-- Not a panacea
+# Limited `Option`
 - We can't say what went wrong
+- There are other types, like `Either`, if you want
+---
+background-image: url("assets/luggage.jpg")
+---
+background-image: url("assets/porter.jpg")
+---
+.huge[
+Constraints liberated
+]
+---
+# Summary
+- Deliberate constraints simplify code use and maintenance
+- Better predictability in code makes refactoring and testing easier and more complete
+- The more powerful, flexible solution is not necessarily better.
+  - Most often, mo' power == mo' problems
+  - Worse choice.
+  - Utilize just as much power as you need for a task and shut the door on any potential complications outside of what is absolutely necessary.
 ---
 background-image: url("assets/LWW_8015.jpg")
 ---

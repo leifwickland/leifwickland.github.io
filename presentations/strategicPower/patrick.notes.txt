@@ -1,0 +1,17 @@
+Slide 4 be explicit that I'm talking about choosing language features, not picking libraries 
+
+
+Complexity
+- Ambiguity
+- Possible states
+
+Hopefully, you are probably the first user of your code when you write tests.
+
+Constraining the inputs frees the developer.
+When you narrow what you receive as an put, you don't have to try to extract the 
+Refactoring is simplified when you aren't tied up in needless details
+Less setup to use
+
+Option forces/allows you to explicitly deal with the none case, s
+
+End with summary
