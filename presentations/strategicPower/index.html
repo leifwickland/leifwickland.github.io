@@ -10,7 +10,7 @@
 
       body { font-family: 'Droid Serif'; }
       h1, h2, h3 { font-family: 'Yanone Kaffeesatz'; font-weight: normal; }
-      .remark-slide-content h1 { font-size: 4em;	}
+      .remark-slide-content h1 { font-size: 4em; }
       .remark-slide-content li ul li { font-size: 1em;}
       .remark-slide-content li { font-size: 2.2em;}
       .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
@@ -22,6 +22,7 @@
       .medium { font-size: 4em; text-align: center }
       .footnote { position:absolute; bottom: 1em; left: 1em; font-size: 1em; }
       .koan { color: #AA00AA; -webkit-text-stroke: 2px #000000 }
+      a { color: black }
     </style>
   </head>
   <body>
@@ -94,10 +95,19 @@ A restricted solution that &hellip; can only do a few things is straightforward 
 --
 ## _Constraint_
 ---
+background-image: url("assets/luggage.jpg")
+---
+background-image: url("assets/porter.jpg")
+---
+class: middle
+.huge[
+Constraints liberate
+]
+---
 # Essay
 
 .quote[
-transitive verb<br>
+transitive verb:<br>
 to try to do, perform, or deal with
 ]
 
@@ -150,7 +160,7 @@ while (true) {
   // 20 lines calculating foo&hellip;
   if (!foo.isValid()) break;
   // 30 lines calculting bar&hellip;
-  if (!var.isValid()) break;
+  if (!bar.isValid()) break;
   // Another 30 lines calculating wah&hellip;
   if (!wah.isValid()) break;
   baz = new Baz(foo, bar, wah);
@@ -160,9 +170,9 @@ return baz;
 ```
 ---
 ```java
-final Foo foo = calculateFoo();
-final Bar bar = calculateBar();
-final Wah wah = calculateWah();
+Foo foo = calculateFoo();
+Bar bar = calculateBar();
+Wah wah = calculateWah();
 
 if (foo.isValid() &&
     bar.isValid() &&
@@ -173,8 +183,9 @@ if (foo.isValid() &&
 }
 ```
 ---
+class: middle, center
 .huge[
-Superior because it constrains the potential complexity
+Superior because complexity is constrained
 ]
 ---
 class: middle, center
@@ -217,7 +228,7 @@ background-position: center;
 .footnote[From [caniuse.com](http://caniuse.com/#feat=let)]
 ---
 ```javascript
-function tellMeAboutYourFeels() {
+function tellMeAboutYourFeels(bob) {
   var feels = "meh";
   if (goodDay(bob)) feels = "hawt";
   else if (badDay(bob)) feels = "bitter";
@@ -227,7 +238,7 @@ function tellMeAboutYourFeels() {
 --
 ```javascript
 // ----- or -----
-function tellMeAboutYourFeels() {
+function tellMeAboutYourFeels(bob) {
   if (goodDay(bob)) return "hawt";
   if (badDay(bob)) return "bitter";
   return "meh";
@@ -265,38 +276,42 @@ class: center, middle
 .medium[
 **Thought experiment:**
 
-What's the _simplest_ interface to your library?
+What's the _simplest_ interface to your module?
 ]
 ---
 class: center, middle
+.huge[Design:]
 .medium[
-Design a simple interface to a graph library to find cycles between nodes.
+Interface to module find cycles between nodes in graph
 ]
 ---
-class: middle
-// TODO java
-```scala
-class Node {name: String)
-
+```java
+class Node {
+  String name()
+}
+```
+--
+```java
 class Graph {
-  def addEdge(from: Node, to: Node)
-  def hasCycle: Boolean
+  void addEdge(Node from, Node to)
+  boolean hasCycle()
 }
 ```
 ---
-# Looks **Simple** but&hellip;
+# Looks Simple, but&hellip;
+
 - Have to instantiate a Graph and Nodes
 - Can only be used with these data types
-- Node can't store anything but a string
+- `Node` can't store anything but a string
 - Limited interface for defining graph's connections
 ---
 # How can we make it better?
-- Abstract `Node` type
-  - User can define it to contain whatever they want
-- Abstract `Graph` type
-  - Allow user to define connections however they want
 
-//TODO fix wording
+- Abstract `Node` type
+    - User can define `Node` to hold whatever
+- Abstract `Graph` type
+    - User chooses how to define connections
+
 ---
 class: middle
 ```java
@@ -312,8 +327,10 @@ abstract class GraphBase<Node> {
 ```
 ---
 # Typical Approach
+
 - Most of us have been taught OOP-y design
 - Feels natural to have a class for each "thing"
+- I don't think it's the best
 ---
 .huge[
 How would we reduce the setup?
@@ -324,44 +341,12 @@ How would we reduce the setup?
 Avoid instantiation and subclassing?
 ]
 ---
-```scala
-object Graph {
-  def hasCycle[N](nodes: Set[N],
-    connectsTo: N => Set[N]): Boolean
-}
-```
 ```java
-class Graph {
+class GraphUtil {
   static boolean hasCycle<N>(
     Set<N> nodes,
-    Function<N, Set<N>> connectsTo
+    Function<N, Set<N>> connectsTo(Node n)
   )
-}
-```
---
-```scala
-// ----- or -----
-
-class Node(name: String,
-  connectsTo: mutable.Set[Node])
-
-def hasCycle(nodes: Set[Node]): Boolean
-```
----
-```scala
-class Graph {
-  def addEdge(from: String, to: String)
-  def hasCycle: Boolean
-}
-```
---
-```scala
-// ----- or -----
-
-abstract class GraphBase[N] {
-  abstract def getNodes: Set[N]
-  abstract def connectsTo(node: N): Set[N]
-  def hasCycle: Boolean
 }
 ```
 ---
@@ -375,7 +360,7 @@ Think in terms of usabilty for the person calling this code.
 Hopefully, you are probably the first user of your code when you write tests.
 More likely to write tests
 ---
-TOOD add lambda image
+background-image: url("assets/lambda.png")
 ???
 Now that Java has added closures nearly every language has closures
 
@@ -400,19 +385,18 @@ Difference between closure and lambda
 # Passing Classes to Functions
 - Generally if a function needs a thing which can do stuff, we'll pass that object to it
 - Often gives the function too much power
-    - Can access data that isn't related
-    - Can access methods that aren't needed
-    - May need to understand object's innards to get at needed data
-        - May break if object changes
-  - Can potentially mutate the object
+    - Can access unrelated data
+    - Can access unneeded methods
+    - Tight coupling produces brittleness
+    - Can potentially mutate the object
 ---
 # Pass Closures, not Classes
-- What if instead we pass most the restrictive, least powerful thing?
+- What if instead we pass more restrictive, less powerful thing?
 - Provides a nice abstraction layer without explicitly defining interface
 - Receiver can only take one action with closure
 - Shared interface without inheritance
 ---
-# Architectural hotspot patterns
+# Architectural Hotspot Patterns
 - Unstable interface
 - Implicit cross-module dependency
 - Unhealthy interface inheritance hierarchy
@@ -421,35 +405,21 @@ Difference between closure and lambda
 
 .footnote[[Adrian Colyer's blog](https://blog.acolyer.org/2016/06/10/hotspot-patterns-the-formal-definition-and-automatic-detection-of-architecture-smells/)]
 ---
-// TODO to Java
-```scala
-class Node(name: String,
-  connectsTo: mutable.Set[Node])
-
-def hasCycle(nodes: Set[Node]): Boolean
-
-// ----- vs -----
-
-def hasCycle[N](nodes: Set[N],
-  connectsTo: N => Set[N]): Boolean
-
-hasCycle(nodes, node => node.connectsTo)
-```
----
-// TODO example sucks
-```scala
-abstract class GraphBase[N] {
-  abstract def getNodes: Set[N]
-  abstract def connectsTo(node: N): Set[N]
-  def hasCycle: Boolean
+```java
+class Node {
+  String name()
+  Set<Node> connectsTo(Node n)
 }
-
+class Graph {
+  static boolean hasCycle(Set<Node> nodes)
+}
 // ----- vs -----
-
-def hasCycle[N](nodes: Set[N],
-  connectsTo: N => Set[N]): Boolean
-
-hasCycle(nodes, node => node.connectsTo)
+class GraphUtil {
+  static boolean hasCycle(
+    Set<N> nodes,
+    Function<N, Set<N>> connectsTo)
+}
+hasCycle(nodes, node::connectsTo)
 ```
 ---
 class: koan
@@ -539,8 +509,8 @@ return baz;
 ```
 ---
 # How can we make it better?
-- Separate functions to make `Foo`, `Bar`, and `Wah`
 
+- Separate functions to make `Foo`, `Bar`, and `Wah`
 --
 
 - Only create valid objects
@@ -567,7 +537,7 @@ return
   makeFoo().flatMap(foo ->
     makeBar().flatMap(bar ->
       makeWah().map(wah ->
-				new Baz(foo, bar, ..., more);
+      new Baz(foo, bar, ..., more);
   )));
 ```
 ---
@@ -579,53 +549,30 @@ return
 ---
 # Limited `Option`
 - We can't say what went wrong
-- There are other types, like `Either`, if you want
+- There are other types, like `Either`, to express more detailed failure
 ---
-background-image: url("assets/luggage.jpg")
----
-background-image: url("assets/porter.jpg")
----
-.huge[
-Constraints liberated
-]
+background-image: url("assets/bowtie.gif")
 ---
 # Summary
+
 - Deliberate constraints simplify code use and maintenance
-- Better predictability in code makes refactoring and testing easier and more complete
-- The more powerful, flexible solution is not necessarily better.
-  - Most often, mo' power == mo' problems
-  - Worse choice.
-  - Utilize just as much power as you need for a task and shut the door on any potential complications outside of what is absolutely necessary.
+--
+
+- Better predictability makes refactoring and testing easier
+--
+
+- More powerful solution is not necessarily better
+--
+
+    - Mo' power, mo' problems!
+---
+# How?
+- Immutability
+- Constrained Interfaces
+- Lambdas to Restrict Coupling
+- `Option` to Express Possible Failure
 ---
 background-image: url("assets/LWW_8015.jpg")
----
-# Appendix: Orphanage for lost slides
----
-# TODO: Keep or drop?
-```c
-OSStatus err;
-// 30 lines of awesome elided
-if ((err = SSLHashSHA1.update(...)) != 0)
-    goto fail;
-if ((err = SSLHashSHA1.update(...)) != 0)
-    goto fail;
-    goto fail;
-// 20 more lines of awesome elided
-fail:
-return err;
-```
-from [sslKeyExchange.c](http://opensource.apple.com/source/Security/Security-55471/libsecurity_ssl/lib/sslKeyExchange.c)
----
-# Better?
-```c
-OSStatus err;
-// 30 lines of awesome elided
-(err = SSLHashSHA1.update(...)) == 0 &&
-(err = SSLHashSHA1.update(...)) == 0 &&
-// 20 lines more awesome
-return err;
-```
----
     </textarea>
     <script src="assets/remark-latest-20160606.min.js"> </script>
     <script>
