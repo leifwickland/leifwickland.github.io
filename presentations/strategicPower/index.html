@@ -548,7 +548,7 @@ return
   makeFoo().flatMap(foo ->
     makeBar().flatMap(bar ->
       makeWah().map(wah ->
-        new Baz(foo, bar, ..., more);
+        new Baz(foo, bar, wah);
   )));
 ```
 ---
