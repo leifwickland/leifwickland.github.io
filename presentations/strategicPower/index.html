@@ -43,7 +43,8 @@ background-image: url("assets/IMG_20160417_170409.jpg")
 
 .right[<img src="assets/haoyi.jpg" width=300px; style="float: right; margin: 10px">]
 - Strongly inspired by his [blog](http://www.lihaoyi.com/).
-- Wicked smart. Scala.js. Amonite.
+- Wicked smart. 
+    - Scala.js. Ammonite.
 - Good parts are his.
 - Anything stupid is mine.
 - Originally he wrote about Scala.
@@ -539,15 +540,15 @@ for (
 ```
 ---
 ```java
-Optional<Foo> makeFoo()
-Optional<Bar> makeBar()
-Optional<Wah> makeWah()
+Optional<Foo> makeFoo() { &hellip;}
+Optional<Bar> makeBar() { &hellip; } 
+Optional<Wah> makeWah() { &hellip; } 
 
 return
   makeFoo().flatMap(foo ->
     makeBar().flatMap(bar ->
       makeWah().map(wah ->
-      new Baz(foo, bar, ..., more);
+        new Baz(foo, bar, ..., more);
   )));
 ```
 ---
