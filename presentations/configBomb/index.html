@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Defusing the Configuration Time Bomb</title>
+    <meta charset="utf-8">
+    <style>
+      @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+      @import url(https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
+      @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+
+      body { font-family: 'Droid Serif'; }
+      h1, h2, h3 { font-family: 'Yanone Kaffeesatz'; font-weight: normal; }
+      .remark-slide-content h1 { font-size: 4em; }
+      .remark-slide-content li ul li { font-size: 1em;}
+      .remark-slide-content li { font-size: 2.2em;}
+      .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
+      .remark-code { font-size: 2.2em; }
+      .title {font-size: 3.3em; color:#FFFFFF;font-weight:bold;letter-spacing:0.05em}
+      .author {font-size: 2.2em; color:#AAAAAA;font-weight:bold;letter-spacing:0.02em}
+      .quote { box-shadow: 0 0 30px #777; padding: 1.5em; font-size: 2.2em; font-style: italic }
+      .huge { font-size: 6em; text-align: center }
+      .medium { font-size: 4em; text-align: center }
+      .mediumBottomRight { font-size: 4em; text-align: center; position:absolute; right: 1em; bottom: 0em; }
+      .footnote { position:absolute; bottom: 1em; left: 1em; font-size: 1em; }
+      .koan { color: #AA00AA; -webkit-text-stroke: 2px #000000 }
+      a { color: black }
+    </style>
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle
+background-color: black
+.title[Defusing the Configuration Time Bomb]
+
+.author[Leif Wickland]
+
+<img width="60%" src="assets/rubicon-logo.svg">
+---
+background-image: url("assets/IMG_20170415_115106.jpg")
+data-background-size: contain
+.mediumBottomRight[
+@leifwickland]
+---
+.huge[What is a program?]
+--
+.huge[Hopefully it's an algorithm.]
+---
+.huge[Typical analogy for an algorithm?]
+--
+.huge[A recipe]
+---
+.huge[Common mistake following recipe?] 
+--
+.huge[Fail to ensure I have everything]
+---
+![Pesto](assets/pesto.png)
+---
+Let's extend that analogy to our 
+
+
+---
+
+# Delete from here
+
+.right[<img src="assets/haoyi.jpg" width=300px; style="float: right; margin: 10px">]
+- Strongly inspired by his [blog](http://www.lihaoyi.com/).
+- Wicked smart. 
+    - Scala.js. Ammonite.
+- Good parts are his.
+- Anything stupid is mine.
+- Originally he wrote about Scala.
+---
+class: left, middle
+background-image: url(assets/icbm.jpg)
+# Strategic<br>Power
+---
+# Principle of Least Power
+
+.quote[
+Given a choice of solutions, pick the least powerful solution capable of solving your problem.
+]
+
+&mdash; [Li Haoyi](http://www.lihaoyi.com/post/StrategicScalaStylePrincipleofLeastPower.html)
+---
+# Developers seek power &amp; flexibility
+
+.right[<img src="https://m.popkey.co/5e278e/kdKdw.gif" width=500px; style="float: right; margin: 10px">]
+
+- _My design is so flexible!_
+- _I'm not exactly sure how I'm going to do it, so&hellip;_
+- _The requirements might change, so&hellip;_
+---
+# With Great Power
+
+- If it can do anything it _might do anything_
+- Bigger possible space to consider
+---
+# Motivation
+
+.quote[
+A restricted solution that &hellip; can only do a few things is straightforward for someone to inspect, analyze and manipulate later.
+]
+
+&mdash; [Li Haoyi](http://www.lihaoyi.com/post/StrategicScalaStylePrincipleofLeastPower.html)
+---
+# Vocabulary check
+## _Power_
+
+--
+## _Restriction_
+
+--
+## _Possibility_
+
+--
+## _Constraint_
+---
+background-image: url("assets/luggage.jpg")
+---
+background-image: url("assets/porter.jpg")
+---
+class: middle
+.huge[
+Constraints liberate
+]
+---
+# Essay
+
+.quote[
+transitive verb:<br>
+to try to do, perform, or deal with
+]
+
+## Can we program stategically using the principle of least power in other languages, too?
+---
+# What I'm not talking about
+- Picking a language
+- Picking a framework
+- Picking a library
+- Most of us don't get to pick those on a daily basis
+---
+class: center, middle
+<img src="assets/low-hanging-fruit.gif" width="100%">
+---
+```cs
+switch (n) {
+  case 1:
+    cost += 25; break;
+  case 2:
+    cost += 25; goto case 1;
+  case 3:
+    cost += 50; goto case 1;
+  default:
+    Console.WriteLine("Invalid selection.");
+    break;
+}
+```
+From [MSDN `goto` docs](https://msdn.microsoft.com/en-us/library/13940fs2.aspx)
+---
+.huge[
+1968: _Go To Statement Considered Harmful_
+]
+I promised you details about our languages becoming more powerful in _recent_ years.
+---
+class: center, middle
+.huge[
+PHP 5.3 added `goto` in 2009
+]
+<img src="assets/jawdrop.gif" style="visibility: hidden">
+---
+class: center, middle
+.huge[
+PHP 5.3 added `goto` in 2009
+]
+<img src="assets/jawdrop.gif">
+---
+```java
+Baz baz = null;
+while (true) {
+  // 20 lines calculating foo&hellip;
+  if (!foo.isValid()) break;
+  // 30 lines calculting bar&hellip;
+  if (!bar.isValid()) break;
+  // Another 30 lines calculating wah&hellip;
+  if (!wah.isValid()) break;
+  baz = new Baz(foo, bar, wah);
+  break;
+}
+return baz;
+```
+---
+```java
+Foo foo = calculateFoo();
+Bar bar = calculateBar();
+Wah wah = calculateWah();
+
+if (foo.isValid() &&
+    bar.isValid() &&
+    wah.isValid()) {
+  return new Baz(foo, bar, wah);
+} else {
+  return null;
+}
+```
+---
+class: middle, center
+.huge[
+Superior because complexity is constrained
+]
+---
+class: middle, center
+.huge[
+Immutability changes everything
+]
+---
+class: middle, center
+.huge[
+Easier to reason about because fewer possibilities
+]
+---
+```javascript
+var label;
+if (havingGoodDay(bob)) label = "ok";
+else label = "bitter";
+```
+--
+```javascript
+// ----- or -----
+
+const label =
+  (havingGoodDay(bob)) ?
+  "good" :
+  "bitter";
+```
+---
+background-image: url("assets/const.png")
+padding: 0px 0px 0px 0px
+background-size: contain;
+background-repeat: no-repeat;
+background-position: center;
+.footnote[From [caniuse.com](http://caniuse.com/#feat=const)]
+---
+background-image: url("assets/let.png")
+padding: 0px 0px 0px 0px
+background-size: contain;
+background-repeat: no-repeat;
+background-position: center;
+.footnote[From [caniuse.com](http://caniuse.com/#feat=let)]
+---
+```javascript
+function tellMeAboutYourFeels(bob) {
+  var feels = "meh";
+  if (goodDay(bob)) feels = "hawt";
+  else if (badDay(bob)) feels = "bitter";
+  return feels;
+}
+```
+--
+```javascript
+// ----- or -----
+function tellMeAboutYourFeels(bob) {
+  if (goodDay(bob)) return "hawt";
+  if (badDay(bob)) return "bitter";
+  return "meh";
+}
+```
+---
+# Prefer Immutabilty
+- As far as possible
+- Except if you really need the perf improvement
+- Spoiler: Very little of your code does
+- Limit the scope of mutabilty
+---
+background-image: url("assets/doublej.jpg")
+padding: 0px 0px 0px 0px
+background-size: contain;
+background-repeat: no-repeat;
+background-position: center;
+---
+```java
+List&lt;String&gt; names = myBffs();
+// ----- or -----
+const List&lt;String&gt; names = myBffs();
+// ----- or -----
+ImmutableList&lt;String&gt; names = myBffs();
+// ----- or -----
+const ImmutableList&lt;String&gt; names = myBffs();
+```
+<image src="assets/friends.png" width=200px style="float:left; margin: 0 20px 20px 20px;">
+---
+<strike>
+```java
+List&lt;String&gt; names = myBffs();
+```
+</strike>
+```java
+const List&lt;String&gt; names = myBffs();
+// ----- or -----
+ImmutableList&lt;String&gt; names = myBffs();
+// ----- or -----
+const ImmutableList&lt;String&gt; names = myBffs();
+```
+<image src="assets/friends.png" width=200px style="float:left; margin: 0 20px 20px 20px;">
+.medium[
+No Double
+Mutability]
+---
+class: center, middle
+.medium[
+**Thought experiment:**
+
+What's the _simplest_ interface to your module?
+]
+---
+class: center, middle
+.huge[Design:]
+.medium[
+Interface to module to find cycles between nodes in graph
+]
+---
+```java
+class Node {
+  String name()
+}
+```
+--
+```java
+class Graph {
+  void addEdge(Node from, Node to)
+  boolean hasCycle()
+}
+```
+---
+# Looks Simple, but&hellip;
+
+- Have to instantiate a `Graph` and `Node`s
+- Can only be used with these data types
+- `Node` can't store anything but a string
+- Limited interface for defining graph's connections
+---
+# How can we make it better?
+
+- Abstract `Node` type
+    - User can define `Node` to hold whatever
+- Abstract `Graph` type
+    - User chooses how to define connections
+
+---
+class: middle
+```java
+abstract class Node {
+  String name()
+}
+
+abstract class GraphBase<Node> {
+  Set<Node> getNodes()
+  Set<Node> connectsTo(Node node)
+  boolean hasCycle()
+}
+```
+---
+# Typical Approach
+
+- Most of us have been taught OOP-y design
+- Feels natural to have a class for each "thing"
+- I don't think it's the best
+---
+.huge[
+How would we reduce the setup?
+]
+<br>
+--
+.medium[
+Avoid instantiation and subclassing?
+]
+---
+```java
+class GraphUtil {
+  static boolean hasCycle<N>(
+    Set<N> nodes,
+    Function<N, Set<N>> connectsTo(Node n)
+  )
+}
+```
+---
+# Haoyi's Ranking of Interfaces
+1. Static method with **standard** types
+2. Static method with **custom** types
+3. Class which must be **instantiated** to be called
+4. Abstract class which must be **subclassed**
+???
+Think in terms of usabilty for the person calling this code.
+Hopefully, you are probably the first user of your code when you write tests.
+More likely to write tests
+---
+background-image: url("assets/lambda.png")
+???
+Now that Java has added closures nearly every language has closures
+
+Difference between closure and lambda
+---
+# Closure vs Class
+
+--
+- Both wrap (potentially mutable) state
+- Both encapsulate data
+- Both have method(s) which can be invoked
+
+--
+- Closure "constructors" are plausible
+- Closure only has one method
+- You can fake more with stringy dispatch
+
+--
+  - Please don't
+
+---
+# Passing Classes to Functions
+- Generally if a function needs a thing which can do stuff, we'll pass that object to it
+- Often gives the function too much power
+    - Can access unrelated data
+    - Can access unneeded methods
+    - Tight coupling produces brittleness
+    - Can potentially mutate the object
+---
+# Pass Closures, not Classes
+- What if instead we pass more restrictive, less powerful thing?
+- Provides a nice abstraction layer without explicitly defining interface
+- Receiver can only take one action with closure
+- Shared interface without inheritance
+---
+# Architectural Hotspot Patterns
+- Unstable interface
+- Implicit cross-module dependency
+- Unhealthy interface inheritance hierarchy
+- Cross-module cycle
+- Cross-package cycle
+
+.footnote[[Adrian Colyer's blog](https://blog.acolyer.org/2016/06/10/hotspot-patterns-the-formal-definition-and-automatic-detection-of-architecture-smells/)]
+---
+```java
+class Node {
+  String name()
+  Set<Node> connectsTo(Node n)
+}
+class Graph {
+  static boolean hasCycle(Set<Node> nodes)
+}
+// ----- vs -----
+class GraphUtil {
+  static boolean hasCycle(Set<N> nodes,
+    Function<N, Set<N>> connectsTo)
+}
+hasCycle(nodes, node::connectsTo)
+```
+---
+class: koan
+background-image: url(assets/two-monks-blur-16-9.jpg)
+.huge[
+Koan]
+---
+class: koan
+background-image: url(assets/two-monks-blur-16-9.jpg)
+.footnote[By Anton van Straaten From [MIT CSAIL list](http://people.csail.mit.edu/gregs/ll1-discuss-archive-html/msg03277.html) via [C2](http://c2.com/cgi/wiki?ClosuresAndObjectsAreEquivalent)]
+.huge[
+The Closure Koan]
+???
+The venerable master Qc Na was walking with his student, Anton. Hoping to prompt the master into a discussion, Anton said "Master, I have heard that objects are a very good thing - is this true?"
+--
+.medium[
+Objects are good]
+???
+Qc Na looked pityingly at his student and replied, "Foolish pupil - objects are merely a poor man's closures."
+--
+.medium[
+Poor man's closures]
+???
+Chastised, Anton took his leave from his master and returned to his cell, intent on studying closures. He carefully read the entire "Lambda: The Ultimate..." series of papers and its cousins, and implemented a small Scheme interpreter with a closure-based object system. He learned much, and looked forward to informing his master of his progress.
+--
+.medium[
+Intent on Studying]
+???
+On his next walk with Qc Na, Anton attempted to impress his master by saying "Master, I have diligently studied the matter, and now understand that objects are truly a poor man's closures."
+--
+.medium[
+Closures are truly good]
+???
+Qc Na responded by hitting Anton with his stick, saying "When will you learn? Closures are a poor man's object."
+--
+.medium[
+Poor man's objects]
+???
+At that moment, Anton became enlightened.
+---
+# The Better Option: Simpler Error Handling
+- `Option`, `Optional`, or `Maybe` in most langauges
+    - If not in standard then a third party library
+--
+- Allows you to indicate either a value **or** failure
+- No confusion which is which
+  - _Is that_ `-1` _a value or a failure code?_
+--
+
+- Short circuit evaluation bails out on error
+- Pairs exquisitely with lambdas
+---
+class: middle
+.huge[
+`Option` is exactly either `Some(value)` or `None`
+]
+---
+```scala
+for (
+  x <- Some(5)
+  y <- Some(7)
+) yield x * y
+// Results in Some(35)
+```
+---
+```scala
+for (
+  x <- Some(5)
+  y <- None
+) yield x * y
+// Results in None
+```
+---
+```java
+Baz baz = null;
+while (true) {
+  // 20 lines calculating foo&hellip;
+  if (!foo.isValid()) break;
+  // 30 lines calculting bar&hellip;
+  if (!var.isValid()) break;
+  // Another 30 lines calculating wah&hellip;
+  if (!wah.isValid()) break;
+  baz = new Baz(foo, bar, wah);
+  break;
+}
+return baz;
+```
+---
+# How can we make it better?
+
+- Separate functions to make `Foo`, `Bar`, and `Wah`
+--
+
+- Only create valid objects
+- Use `Option` to indicate possibility of invalid
+---
+```scala
+def makeFoo(): Option[Foo]
+def makeBar(): Option[Bar]
+def makeWah(): Option[Wah]
+
+for (
+  foo <- makeFoo()
+  bar <- makeBar()
+  wah <- makeWah()
+) yield new Baz(foo, bar, wah)
+```
+---
+```java
+Optional<Foo> makeFoo() { &hellip;}
+Optional<Bar> makeBar() { &hellip; } 
+Optional<Wah> makeWah() { &hellip; } 
+
+return
+  makeFoo().flatMap(foo ->
+    makeBar().flatMap(bar ->
+      makeWah().map(wah ->
+        new Baz(foo, bar, wah);
+  )));
+```
+---
+# The Better Option: Simpler Error Handling
+- Avoids common pitfalls:
+  - Not supposed to use `throw` for flow control
+  - `null` is the _Billion Dollar Mistake_ [according to inventor](https://www.infoq.com/presentations/Null-References-The-Billion-Dollar-Mistake-Tony-Hoare)
+  - Don't have to remember to check error code
+---
+# Limited `Option`
+- We can't say what went wrong
+- There are other types, like `Either`, to express more detailed failure
+---
+background-image: url("assets/bowtie.gif")
+---
+# Summary
+
+- Deliberate constraints simplify code use and maintenance
+--
+
+- Better predictability makes refactoring and testing easier
+--
+
+- More powerful solution is not necessarily better
+--
+
+    - Mo' power, mo' problems!
+---
+# How?
+- Immutability
+- Constrained Interfaces
+- Lambdas to Restrict Coupling
+- `Option` to Express Possible Failure
+---
+background-image: url("assets/LWW_8015.jpg")
+.medium[
+@leifwickland]
+    </textarea>
+    <script src="assets/remark-latest-20170604.min.js"> </script>
+    <script>
+var slideshow = remark.create({
+  highlightStyle: "googlecode",
+  // Set the slideshow display ratio
+  // Default: '4:3'
+  // Alternatives: '16:9', ...
+  ratio: '16:9',
+
+  // Navigation options
+  navigation: {
+    // Enable or disable navigating using scroll
+    // Default: true
+    // Alternatives: false
+    scroll: true,
+
+    // Enable or disable navigation using touch
+    // Default: true
+    // Alternatives: false
+    touch: true,
+
+    // Enable or disable navigation using click
+    // Default: false
+    // Alternatives: true
+    click: false
+  },
+
+  // .. or by using a format function
+  slideNumberFormat: function (current, total) {
+    if (current == 1) {
+      return '';
+    } else {
+      return '<img src="assets/rubicon-dots.png" width="100px;"><br>Slide ' + current + ' of ' + total;
+    }
+  },
+
+  // Enable or disable counting of incremental slides in the slide counting
+  countIncrementalSlides: true
+});
+    </script>
+  </body>
+</html>
