@@ -37,7 +37,6 @@ background-color: black
 <img width="60%" src="assets/rubicon-logo.svg">
 ---
 background-image: url("assets/IMG_20170415_115106.jpg")
-data-background-size: contain
 .mediumBottomRight[
 @leifwickland]
 ---
@@ -53,14 +52,122 @@ data-background-size: contain
 --
 .huge[Fail to ensure I have everything]
 ---
-![Pesto](assets/pesto.png)
+background-image: url("assets/pesto.png")
+.footnote[From [foodnetwork](http://www.foodnetwork.com/recipes/food-network-kitchen/basil-pesto-recipe2-1915284)]
 ---
-Let's extend that analogy to our 
+.medium[Ingedients → Steps → Yum]
+---
+.medium[Input → Code → Output]
+---
+
+# What's Input to Our Apps?
+--
+
+- User Input
+- State from Data Store
+--
+
+- Configuration
+---
+background-image: url("assets/paper.png")
+.footnote[From [Xu, et al.](https://www.usenix.org/system/files/conference/osdi16/osdi16-xu.pdf)]
+
+---
+
+.quote[
+Configuration errors have become one of the major causes of failures in large-scale cloud and Internet systems]
+
+---
+
+# Examples of config driven outages
+
+- Google App Engine down for [2.5 hours in Feb 2010](http://www.availabilitydigest.com/public_articles/0504/google_power_out.pdf)
+- AWS EC2 and RDS down for [days in Apr 2011](https://aws.amazon.com/message/65648/)
+- Microsoft Azure down for [2.5 hours in Jul 2012](http://www.datacenterdynamics.com/content-tracks/servers-storage/microsoft-misconfigured-network-device-led-to-azure-outage/68312.article)
+
+---
+
+# 2010 Google App Engine Outage
+
+1. Power went down
+2. Backup power didn't reach some boxes
+3. Ops followed procedure to reconfigure to fail over
+--
+
+4. New configuration was busted
+5. Outage persisted
+
+.footnote[From [availabilitydigest](http://www.availabilitydigest.com/public_articles/0504/google_power_out.pdf)]
+---
+
+# Anecdote from Rubicon Project
+
+1. Homegrown system for managing data retention and mirroring
+2. JIRA created to change retention time
+3. PR sent, reviewed, and merged
+--
+
+4. Syntax error in config makes app fail
+5. Reporting pipeline stops because no mirroring
+6. Engineers get called on a weekend
+---
+
+.quote[
+Since it is hard to completely avoid configuration errors (after all, everyone makes mistakes; as do system administrators), a more practical approach is to detect such errors as early as possible in order to minimize their failure damage
+]
+
+.footnote[From [Xu, et al.](https://www.usenix.org/system/files/conference/osdi16/osdi16-xu.pdf)]
+---
+
+.medium[Why isn't it enough to start the app and see if it works after a config change?]
+
+---
+
+1. Squid reconfigured to change log rotation
+2. Squid didn't validate that config on startup
+3. Error was exposed much later after days of execution
+--
+
+4. Next attempt to rotate results in Squid in a busy loop, hogging CPU for 7 hours
+5. Figuring our the root cause takes days
 
 
+.footnote[From [bugs.squid-cache.org](http://bugs.squid-cache.org/show_bug.cgi?id=1703)]
+---
+
+.medium[Xu, et al. call this a "latent configuration error"]
+
+---
+
+TODO insert paper's analysis of various software packages
+
+---
+
+.quote[
+Although there have been fewer latent configuration errors than non-latent ones, latent configuration errors contribute to 75% of the high-severity issues and take much longer to diagnose, indicating their high impact and damage.]
+
+.footnote[From [Xu, et al.](https://www.usenix.org/system/files/conference/osdi16/osdi16-xu.pdf)]
+
+---
+# What would we do in an ideal world?
+
+- Validate configuration on startup
+- Validate more than "value is present" but also "value is usable"
+- Provide a utility to validate config outside of app
+
+---
+
+.medium[About here Xu, et al. push propriety, unpublished software.]<br>
+<img src="assets/betterWorld.jpg" width="400px" style="float: left; margin: 10px">
+---
+
+.medium[I'm going to show you open source tools.]<br>
+<img src="assets/betterWorld2.jpg" width="400px" style="float: left; margin: 10px">
 ---
 
 # Delete from here
+
+---
 
 .right[<img src="assets/haoyi.jpg" width=300px; style="float: right; margin: 10px">]
 - Strongly inspired by his [blog](http://www.lihaoyi.com/).
@@ -609,6 +716,7 @@ background-image: url("assets/LWW_8015.jpg")
 @leifwickland]
     </textarea>
     <script src="assets/remark-latest-20170604.min.js"> </script>
+    <!-- <script src="assets/remark-latest-20170604.min.js"> </script> -->
     <script>
 var slideshow = remark.create({
   highlightStyle: "googlecode",
