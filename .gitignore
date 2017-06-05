@@ -1,6 +1,7 @@
 *~
 *.class
 *.log
+.DS_Store
 
 # sbt specific
 .cache
@@ -17,4 +18,3 @@ project/plugins/project/
 .scala_dependencies
 .worksheet
 
-**/.DS_Store
