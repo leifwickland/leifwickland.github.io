@@ -125,7 +125,7 @@ Since it is hard to completely avoid configuration errors (after all, everyone m
 Why isn't it enough to start the app to determine if a modified config is good?]
 
 ---
-
+# Starting the app isn't enough
 1. Squid reconfigured to change log rotation
 2. Squid didn't validate that config on startup
 --
@@ -143,6 +143,7 @@ Xu, et al. call this a<br>
 <i>latent configuration error<i>]
 --
 <img src="assets/bomb.gif" width="400px" style="float: left; margin: 10px">
+.footnote[[tenor](https://tenor.com/view/mario-bobomb-gif-4520277)]
 
 ---
 
@@ -225,9 +226,9 @@ val stream = this.getClass.getClassLoader
   .getResourceAsStream("vanilla.properties")
 prop.load(stream)
 VanillaConfig(
-  apiKey = prop.getProperty("api-key"),
-  timeout = prop.getProperty("timeout").toLong,
-  port = prop.getProperty("port").toInt
+  apiKey=prop.getProperty("api-key"),
+  timeout=prop.getProperty("timeout").toLong,
+  port=prop.getProperty("port").toInt
 )
 ```
 --
@@ -236,17 +237,18 @@ VanillaConfig(
 # What's bad?
 - Duplicate names between class and config
   - Carefully translate from<br>`kebab-case` to `camelCase`
-- Explicitly write conversions from `String`
+- Explicitly convert from `String` to field type
 - Config errors are still reported badly
+  - `NumberFormatException: For input string: "sad"`
 
 ---
 .huge[
-PureConfig]
+[PureConfig](https://github.com/pureconfig/pureconfig)]
 --
 
 - Magically maps field names to config names
 - Uses field types to translate strings for you
-- Wraps [Typesafe Config](https://github.com/typesafehub/config) so you get [HOCON](https://github.com/typesafehub/config/blob/master/HOCON.md)
+- Builds on [Typesafe Config](https://github.com/typesafehub/config) so you get [HOCON](https://github.com/typesafehub/config/blob/master/HOCON.md)
   - Superset of JSON + `.properties`
   - Merges files + env + `-Dproperties`
 ---
@@ -260,13 +262,16 @@ case class ShinyConfig(
   apiKey: String,
   timeout: FiniteDuration,
   port: Int)
-
+```
+--
+```scala
 pureconfig.loadConfigOrThrow[ShinyConfig]
 ```
+
 ---
-```
+```scala
 val config = 
-  pureconfig.loadConfigOrThrow[RefinedConfig]
+  pureconfig.loadConfigOrThrow[ShinyConfig]
 
 AwesomeClient(
   config.apiKey,
@@ -276,14 +281,13 @@ AwesomeClient(
 ```
 ---
 .medium[
-I lied.
-]
+I lied.]
 --
 .medium[
-It's not magic.<br>
-Configurable<br>
-Extensible<br>
-Well-documented<br>
+It's not magic. It is<br>
+configurable,<br>
+extensible, and <br>
+well-documented<br>
 ]
 ---
 # What could we still do better?
@@ -299,8 +303,7 @@ case class ShinyConfig(
 - Port should be 1..65535
 ---
 .huge[
-Refined
-]
+[Refined](https://github.com/fthomas/refined)]
 --
 .medium[
 Type-level refinement of allowed values
@@ -320,9 +323,12 @@ pureconfig.loadConfigOrThrow[RefinedConfig]
 ```
 ---
 ```scala
+import pureconfig._
+
 object VerifyConfigMain extends App {
   println("Loaded Config: " +
-    pureconfig.loadConfigOrThrow[RefinedConfig])
+   loadConfigOrThrow[RefinedConfig]
+  )
 }
 ```
 ---
