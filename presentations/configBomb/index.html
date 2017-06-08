@@ -167,7 +167,7 @@ background-image: url("assets/table3.png")
 ---
 
 .quote[
-Although there have been fewer latent configuration errors than non-latent ones, latent configuration errors contribute to 75% of the high-severity issues and take much longer to diagnose, indicating their high impact and damage.]
+Latent configuration errors contribute to **75% of the high-severity issues** and take much longer to diagnose, indicating their high impact and damage.]
 
 .footnote[From [Xu, et al.](https://www.usenix.org/system/files/conference/osdi16/osdi16-xu.pdf)]
 
@@ -217,6 +217,7 @@ val prop = new Properties
 val stream = getClass.getClassLoader
   .getResourceAsStream("vanilla.properties")
 prop.load(stream)
+
 AwesomeClient(
   prop.getProperty("api-key"),
   prop.getProperty("timeout").toLong,
@@ -246,12 +247,12 @@ val prop = new Properties
 val stream = this.getClass.getClassLoader
   .getResourceAsStream("vanilla.properties")
 prop.load(stream)
+
 VanillaConfig(
   prop.getProperty("api-key"),
   prop.getProperty("timeout").toLong,
   new URL(prop.getProperty("read-from")),
-  Paths.get(prop.getProperty("write-to"))
-)
+  Paths.get(prop.getProperty("write-to")))
 ```
 --
 # What's bad?
