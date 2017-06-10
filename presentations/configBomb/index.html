@@ -145,10 +145,10 @@ Why isn't it enough to start the app to determine if a modified config is good?]
 .medium[
 Xu, et al. call this a<br>
 <i>latent configuration error<i>]
---
-<img src="assets/bomb.gif" width="400px" style="float: left; margin: 10px">
-.footnote[[tenor](https://tenor.com/view/mario-bobomb-gif-4520277)]
 
+---
+background-image: url("assets/bomb.gif")
+.footnote[[tenor](https://tenor.com/view/mario-bobomb-gif-4520277)]
 ---
 
 background-image: url("assets/table1.png")
@@ -157,11 +157,6 @@ background-image: url("assets/table1.png")
 ---
 
 background-image: url("assets/table2.png")
-
-.footnote[From [Xu, et al.](https://www.usenix.org/system/files/conference/osdi16/osdi16-xu.pdf)]
----
-
-background-image: url("assets/table3.png")
 
 .footnote[From [Xu, et al.](https://www.usenix.org/system/files/conference/osdi16/osdi16-xu.pdf)]
 ---
@@ -190,6 +185,11 @@ I'm going to show you open source tools.]
 .medium[
 Time for only one language; you get Scala.]
 <img src="assets/betterWorld3.jpg" width="400px" style="float: left; margin: 0px">
+---
+.huge[
+Real code!]
+.medium[
+[git.io/configBombCode](https://git.io/configBombCode)]
 ---
 # Motivation: Need an AwesomeClient
 ```scala
@@ -302,6 +302,12 @@ pureconfig.loadConfigOrThrow[ShinyConfig]
 - Configurable
 - Extensible
 ---
+background-image: url("assets/godfather.jpg")
+.footnote[From [memegenerator/twitter](https://pbs.twimg.com/media/DB6dwLdU0AAkhO0.jpg)]
+---
+<img width="100%" src="assets/toc.png">
+.footnote[From [pureconfig](https://github.com/pureconfig/pureconfig)]
+---
 # Configurable
 
 - Lots of different ways to load configs
@@ -356,12 +362,47 @@ pureconfig.loadConfigOrThrow[RefinedConfig]
 # Refined lets you do ever crazier stuff like:
 
 ```scala
-  type NonReserveredPort = Int Refined
-    Interval.Closed[W.`1024`.T, W.`65535`.T]
+type NonReserveredPort = Int Refined
+  Interval.Closed[W.`1024`.T, W.`65535`.T]
 ```
-
+--
+```scala
+type ApiKey = String Refined 
+  MatchesRegex[W.`"[a-zA-Z0-9]{36}"`.T]
+```
 ---
-# Putting it all together
+```scala
+final case class OpenPort()
+
+implicit val openPortValidate: 
+  Validate.Plain[Int, OpenPort] =
+  Validate.fromPartial(
+    new ServerSocket(_).close(), 
+    "OpenPort", OpenPort())
+
+type AvailPort = Int Refined OpenPort
+```
+.footnote[[From vlovgren](https://vlovgr.github.io/refined-types/#17)]
+---
+```scala
+final case class WritableDir()
+
+implicit val writableDirValidate:
+  Validate.Plain[Path, WritableDir] =
+  Validate.fromPredicate(
+    p => p.toFile.canWrite &&
+      p.toFile.isDirectory,
+    p => s"$p is not a writable dir.",
+    WritableDir())
+
+type WritableD = Path Refined WritableDir
+```
+---
+.medium[
+Have we pushed this too far?<br>
+Refined types with side effects or reading the env are finicky]
+---
+# Ahead-of-time config checking
 
 ```scala
 import pureconfig._
@@ -373,6 +414,12 @@ object VerifyConfigMain extends App {
 }
 ```
 ---
+# Where are we at?
+
+- Verify config at startup
+- Verify config values are good
+- Verify config is good ahead of time
+---
 background-image: url("assets/LWW_8682-HDR.jpg")
 .medium[
 @leifwickland
@@ -381,7 +428,7 @@ background-image: url("assets/LWW_8682-HDR.jpg")
 <br>
 <br>
 <br>
-tinyurl.com/configBomb
+git.io/configBomb
 ]
     </textarea>
     <script src="assets/remark-latest-20170604.min.js"> </script>
