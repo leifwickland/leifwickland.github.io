@@ -12,10 +12,14 @@ case class ShinyConfig(
 
 object ShinyConfig{
   def load(): ShinyConfig = {
-    implicit val pathConfigReader = pureconfig.ConfigReader.fromStringTry[Path]{s=>
-      println("path from string: " + s)
-      scala.util.Try(Paths.get(s))
-    }
     pureconfig.loadConfigOrThrow[ShinyConfig]
   }
 }
+
+
+case class ShinierConfig(
+  apiKey: String,
+  timeout: FiniteDuration = 30.seconds,
+  readFrom: URL,
+  writeTo: Path = Paths.get("/dev/null")
+)

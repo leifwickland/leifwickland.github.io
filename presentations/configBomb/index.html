@@ -228,11 +228,24 @@ AwesomeClient(
 --
 # What's bad?
 ---
-# What's bad?
-- Can't verify config is good without running app
-- Mixed app logic and config loading
-- Config errors are reported late and badly
+# Mixed app logic and config loading
 
+- Business logic drowns in string conversions
+- Tend to write string conversions repeatedly
+- Data types become hurdles we jump instead e*scala*tors which lift us
+---
+# Config errors are reported late and badly
+
+- Exception points back at the code not config
+- `NumberFormatException: For input string: "sad"`
+- I'd rather now which line of which file the error was on
+- No error until config is needed
+---
+# Can't verify config is good without running app
+
+- If check is difficult, less likely to get done
+- Long running jobs
+- Apps which require a special environment
 ---
 ```scala
 case class VanillaConfig(
@@ -330,6 +343,16 @@ implicit val hadoopConfigConvert =
   )
 ```
 ---
+# Defaults
+```scala
+case class ShinierConfig(
+  apiKey: String,
+  timeout: FiniteDuration = 30.seconds,
+  readFrom: URL,
+  writeTo: Path = Paths.get("/dev/null")
+)
+```
+---
 # What could we still do better?
 ```scala
 case class ShinyConfig(
@@ -413,6 +436,9 @@ object VerifyConfigMain extends App {
     loadConfigOrThrow[RefinedConfig]
   )
 }
+```
+```shell
+> java -cp awesome.jar:. VerifyConfigMain
 ```
 ---
 # Where are we at?
