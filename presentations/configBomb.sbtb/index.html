@@ -150,7 +150,7 @@ background-image: url("assets/doug.png")
 
 .medium[
 Xu, et al. call this a<br>
-<i>latent configuration error<i>]
+<i>latent configuration error</i>]
 
 ---
 background-image: url("assets/bomb.gif")
@@ -191,7 +191,7 @@ I'm going to show you open source tools.]
 .huge[
 Real code!]
 .medium[
-[git.io/configBombCode](https://git.io/configBombCode)]
+[git.io/vF4Ba](https://git.io/vF4Ba)]
 ---
 # Motivation: Need an AwesomeClient
 ```scala
@@ -278,7 +278,7 @@ VanillaConfig(
   Paths.get(prop.getProperty("write-to")))
 ```
 --
-# What's bad?
+# What did we gain? What's bad?
 ---
 # What's bad?
 - Duplicate names between class and config
@@ -298,12 +298,22 @@ VanillaConfig(
   - Superset of JSON + `.properties`
   - Merges files + env + `-Dproperties`
 ---
+# HOCON `application.conf`
+
 ```json
 api-key: super53kr3tk3y
 timeout: 15 seconds
-read-from: http://best.api/ever
+read-from: "http://best.api/ever"
 write-to: /write/it/here
 ```
+---
+```json
+api-key: super53kr3tk3y
+timeout: 15 seconds
+read-from: "http://best.api/ever"
+write-to: /write/it/here
+```
+
 ```scala
 case class ShinyConfig(
   apiKey: String,
@@ -320,7 +330,7 @@ pureconfig.loadConfigOrThrow[ShinyConfig]
 --
 <br>
 .medium[It's not magic.]
-- Verified at Compile-time
+- Verified at compile-time
 - Well-documented
 - Configurable
 - Extensible
@@ -335,8 +345,8 @@ background-image: url("assets/godfather.jpg")
 ---
 # Configurable
 
-- Lots of different ways to load configs # TODO
-- Lots of different ways to map fields to config keys # TODO
+- Lots of different ways to load configs
+- Lots of different ways to map fields to config keys
 ---
 # Extensible
 
@@ -349,7 +359,7 @@ background-image: url("assets/godfather.jpg")
 
 ```scala
 implicit val hadoopConfigConvert = 
-  ConfigConvert.fromStringTry[Path](
+  ConfigReader.fromStringTry[Path](
     s => Try(new Path(s))
   )
 ```
@@ -397,15 +407,28 @@ pureconfig.loadConfigOrThrow[RefinedConfig]
 # Refined lets you do ever crazier stuff like:
 
 ```scala
-type NonReserveredPort = Int Refined
+type UserPort = Int Refined
   Interval.Closed[W.`1024`.T, W.`65535`.T]
 ```
 --
 ```scala
-type ApiKey = String Refined 
-  MatchesRegex[W.`"[a-zA-Z0-9]{36}"`.T]
+type UserPort = Int Refined UserPortNumber
 ```
+## Note: upper bound is [49151](https://github.com/fthomas/refined/blob/master/modules/core/shared/src/main/scala/eu/timepit/refined/types/net.scala#L19)
 ---
+# Refined lets you do ever crazier stuff like:
+
+```scala
+type ApiKey = String Refined 
+  MatchesRegex[W.`"[a-zA-Z0-9-]{36}"`.T]
+```
+--
+```scala
+type ApiKey = String Refined GUID
+```
+## Note: enforces [8-4-4-4-12](https://github.com/fthomas/refined/pull/300/files) representation
+---
+# Custom Validator
 ```scala
 final case class OpenPort()
 
@@ -452,29 +475,89 @@ object VerifyConfigMain extends App {
 > java -cp awesome.jar:. VerifyConfigMain
 ```
 ---
+.medium[When can we run `Verify` main?]
+
+--
+
+.medium[Ops guy suggested first thing in container]
+---
 # Where are we at?
 
 - Verify config at startup
 - Verify config values are good
 - Verify config is good ahead of time
 ---
-# Tips on using PureConfig
-
-- Segregate config classes *and* the call to load them
-  - At least separate files if not a whole namespace
-  - Expensive compiles due to Shapeless magic
-  - Config should depend on as little as possible in your code base
+.huge[Tips on using PureConfig]
 ---
-# Tips on using PureConfig
+# Help the compiler
+
+- Expensive compiles due to Shapeless magic
+- Isolate config classes from the rest of your code
+- Segregate config classes *and* call loading them
+- At least separate files; maybe a namespace
+- Config should depend on as little as possible in your code base
+  - That might just be a good idea anyway
+---
+# But the compiler won't help you
 
 - Compiler errors can be horrifyingly bad
-  - Blames top-level class when root cause is levels down
-- So work incrementally
+  - Usually blames top-level class
+- Work incrementally
   - Create a config class with a single member
   - Create a unit test which loads that config 
   - Add a few things
-  - Run your tests again
-  
+  - When test breaks, blame recent changes
+---
+# Where config files are loaded from?
+
+- Typesafe style: `loadConfig()` 
+   - `-D` props and env vars
+   - `application.conf`
+   - `resource.conf`
+- Explicit: `loadConfigFromFiles(paths)`
+- Roll your own
+   - `val c = ConfigFactory.load*()`
+   - `loadConfig(c)`
+---
+# Configuring field mapping
+
+- Default reads `kebab-case`, writes `camelCase`
+- Change global default:
+
+```scala
+implicit def hint[T] = ProductHint[T](
+  ConfigFieldMapping(CamelCase, CamelCase))
+
+// Needs to be in scope at call to
+// pureconfig.loadConfig()
+```
+---
+# Configuring field mapping
+
+- Change single mapping:
+
+```json
+# config
+bat-man: hero
+joker: zero
+```
+
+```scala
+case class GothamConf(
+  bruceWayne: String,
+  joker: String)
+```
+---
+# Configuring field mapping
+
+```scala
+val overrides = Map("bruceWayne" -> "bat-man")
+
+implicit val hint = ProductHint[GothamConf](
+  ConfigFieldMapping(overrides.withDefault(
+    ConfigFieldMapping(CamelCase, KebabCase)
+)))
+```
 ---
 background-image: url("assets/LWW_8682-HDR.jpg")
 .medium[
@@ -488,7 +571,6 @@ git.io/configBomb
 ]
     </textarea>
     <script src="assets/remark-latest-20170604.min.js"> </script>
-    <!-- <script src="assets/remark-latest-20170604.min.js"> </script> -->
     <script>
 var slideshow = remark.create({
   highlightStyle: "googlecode",

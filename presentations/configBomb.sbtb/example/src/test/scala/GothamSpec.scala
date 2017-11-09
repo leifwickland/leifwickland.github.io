@@ -4,18 +4,23 @@ import com.typesafe.config.ConfigFactory.parseString
 
 class GothamSpec extends FlatSpec with Matchers {
   "field mapping" should "be individually configurable" in {
-    case class GothamConf(bruceWayne: String)
-
-    implicit val hint = ProductHint[GothamConf](
-      ConfigFieldMapping(Map(
-        "bruceWayne" -> "bat-man" 
-      ).withDefault(
-        ConfigFieldMapping(CamelCase, KebabCase)))
+    case class GothamConf(
+      bruceWayne: String,
+      joker: String
     )
 
-    val exp = "justice"
-    val conf = s"bat-man: $exp"
+    val overrides = Map("bruceWayne" -> "bat-man")
+    implicit val hint = ProductHint[GothamConf](
+      ConfigFieldMapping(overrides.withDefault(
+        ConfigFieldMapping(CamelCase, KebabCase)
+      )))
+
+    val batExp = "hero"
+    val jokExp = "zero"
+    val conf = s"""bat-man: $batExp
+                  |joker: $jokExp""".stripMargin
     val g = loadConfigOrThrow[GothamConf](parseString(conf))
-    g.bruceWayne shouldBe exp
+    g.bruceWayne shouldBe batExp
+    g.joker shouldBe jokExp
   }
 }
