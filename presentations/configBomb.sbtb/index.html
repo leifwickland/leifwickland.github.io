@@ -48,12 +48,18 @@ background-image: url("assets/IMG_20170415_115106.jpg")
 --
 .huge[A recipe]
 ---
-.huge[Common mistake following recipe?] 
+.huge[Common mistake following recipe?]
 --
 .huge[Fail to ensure I have everything]
 ---
 background-image: url("assets/pesto.png")
 .footnote[From [foodnetwork](http://www.foodnetwork.com/recipes/food-network-kitchen/basil-pesto-recipe2-1915284)]
+---
+background-image: url("assets/garlic.jpg")
+.footnote[From [cookpedia](https://www.cookipedia.co.uk/recipes_wiki/Elephant_garlic_pur%C3%A9e)]
+---
+background-image: url("assets/greenSludge.jpg")
+.footnote[From [eyeofthefish](http://eyeofthefish.org/oil/)]
 ---
 .medium[
 Ingedients → Steps → Yum]
@@ -67,20 +73,31 @@ Input → Code → Output]
 
 - User Input
 - State from Data Store
---
-
+<img src="assets/deech.png" width="100%" style="float: left; margin: 0px">
+---
+# What's Input to Our Apps?
+- User Input
+- State from Data Store
 - Configuration
+---
+.medium[
+Industry has improved at sanitizing user input and data stores, not config.]
 ---
 .medium[
 Industry has improved at sanitizing user input and data stores, not config.]
 <img src="assets/php.png" width="40%" style="float: left; margin: 0px">
 <img src="assets/mongodb.png" width="40%" style="float: right; margin: 0px">
 ---
-background-image: url("assets/paper.png")
-.footnote[From [Xu, et al.](https://www.usenix.org/system/files/conference/osdi16/osdi16-xu.pdf)]
+.huge[
+It's<br>
+`String => Any`<br>
+all the way down.
+]
 
 ---
-
+background-image: url("assets/paper.png")
+.footnote[From [Xu, et al.](https://www.usenix.org/system/files/conference/osdi16/osdi16-xu.pdf)]
+---
 .quote[
 Configuration errors have become one of the major causes of failures in large-scale cloud and Internet systems]
 .footnote[From [Xu, et al.](https://www.usenix.org/system/files/conference/osdi16/osdi16-xu.pdf)]
@@ -130,11 +147,6 @@ Since it is hard to completely avoid configuration errors (after all, everyone m
 Why isn't it enough to start the app to determine if a modified config is good?]
 
 ---
-
-background-image: url("assets/doug.png")
-.footnote[From [twitter](https://twitter.com/doug_goldstein/status/926594709300109313)]
-
----
 # Starting the app isn't enough
 1. Squid reconfigured to change log rotation
 2. Squid didn't validate that config on startup
@@ -156,6 +168,10 @@ Xu, et al. call this a<br>
 background-image: url("assets/bomb.gif")
 .footnote[[tenor](https://tenor.com/view/mario-bobomb-gif-4520277)]
 ---
+.medium[
+How prevelent are <br>
+latent configuration errors?]
+---
 
 background-image: url("assets/table1.png")
 
@@ -166,6 +182,14 @@ background-image: url("assets/table2.png")
 
 .footnote[From [Xu, et al.](https://www.usenix.org/system/files/conference/osdi16/osdi16-xu.pdf)]
 ---
+.medium[
+TL;DR: Latent configuration errors are prevelent
+]
+--
+.medium[
+But does it matter?
+]
+---
 
 .quote[
 Latent configuration errors contribute to **75% of the high-severity issues** and take much longer to diagnose, indicating their high impact and damage.]
@@ -173,12 +197,16 @@ Latent configuration errors contribute to **75% of the high-severity issues** an
 .footnote[From [Xu, et al.](https://www.usenix.org/system/files/conference/osdi16/osdi16-xu.pdf)]
 
 ---
-# What would we do in an ideal world?
+# How should we combat latent errors?
+---
+background-image: url("assets/doug.png")
 
+.footnote[From [twitter](https://twitter.com/doug_goldstein/status/926594709300109313)]
+---
+# How should we combat latent errors?
 - Validate configuration on startup
 - Validate more than "value is present" but also "value is usable"
 - Provide a utility to validate config outside of app
-
 ---
 .medium[
 Xu, et al. pushed propriety, unpublished software.]
@@ -242,10 +270,11 @@ AwesomeClient(
 - Tell me file:line of error and what was expected
 - No error until config is read when we construct an `AwesomeClient`
 ---
-# Can't verify config is good without running app
+# Can't verify config is good without running
 
 - If check is difficult, less likely to get done
-- Long running jobs
+- Long running jobs, daemons
+- Infrequently scheduled jobs at off hours
 - Apps which require a special environment
 ---
 .medium[
@@ -278,7 +307,9 @@ VanillaConfig(
   Paths.get(prop.getProperty("write-to")))
 ```
 --
-# What did we gain? What's bad?
+# What did we gain?
+---
+# What's bad?
 ---
 # What's bad?
 - Duplicate names between class and config
@@ -288,15 +319,27 @@ VanillaConfig(
   - `NumberFormatException: For input string: "sad"`
 
 ---
+<img src="assets/pureconfig.png" style="float: right; margin: 0px">
 .huge[
-[PureConfig](https://github.com/pureconfig/pureconfig)]
---
+Pure<br>Config
+]
+---
+# PureConfig
 
 - Magically maps field names to config names
-- Uses field types to translate strings for you
+- Converts strings to fields' types automatically
+--
+
 - Builds on [Typesafe Config](https://github.com/typesafehub/config) so you get [HOCON](https://github.com/typesafehub/config/blob/master/HOCON.md)
   - Superset of JSON + `.properties`
   - Merges files + env + `-Dproperties`
+- Actionable error messages
+
+```
+app.conf:2 Cannot convert 'Soon' to Duration
+```
+
+.footnote[[PureConfig](https://github.com/pureconfig/pureconfig)]
 ---
 # HOCON `application.conf`
 
@@ -340,7 +383,7 @@ background-image: url("assets/godfather.jpg")
 .footnote[From [memegenerator/twitter](https://pbs.twimg.com/media/DB6dwLdU0AAkhO0.jpg)]
 ---
 <img width="100%" src="assets/toc.png">
-.footnote[From [pureconfig #TODO](https://github.com/pureconfig/pureconfig)]
+.footnote[From [pureconfig](https://github.com/pureconfig/pureconfig)]
 
 ---
 # Configurable
@@ -358,12 +401,22 @@ background-image: url("assets/godfather.jpg")
 - So I have code like this:
 
 ```scala
-implicit val hadoopConfigConvert = 
+implicit val hadoopConfigConvert =
   ConfigReader.fromStringTry[Path](
     s => Try(new Path(s))
   )
 ```
 ---
+# Libraries
+
+- Cats
+- Akka
+- Enumeratum
+- Java 8 time
+- Joda
+- Squants
+
+--
 # Defaults
 ```scala
 case class ShinierConfig(
@@ -393,6 +446,13 @@ case class ShinyConfig(
 Type-level refinement of allowed values
 ]
 ---
+# Refinement?
+--
+
+- Built-in types describe implementation bounds
+- Refinement further constrains
+
+---
 ```scala
 case class RefinedConfig(
   apiKey: String Refined NonEmpty,
@@ -404,7 +464,7 @@ case class RefinedConfig(
 pureconfig.loadConfigOrThrow[RefinedConfig]
 ```
 ---
-# Refined lets you do ever crazier stuff like:
+# Refined lets you do ever crazier stuff
 
 ```scala
 type UserPort = Int Refined
@@ -416,26 +476,26 @@ type UserPort = Int Refined UserPortNumber
 ```
 ## Note: upper bound is [49151](https://github.com/fthomas/refined/blob/master/modules/core/shared/src/main/scala/eu/timepit/refined/types/net.scala#L19)
 ---
-# Refined lets you do ever crazier stuff like:
+# Refined lets you do ever crazier stuff
 
 ```scala
-type ApiKey = String Refined 
+type ApiKey = String Refined
   MatchesRegex[W.`"[a-zA-Z0-9-]{36}"`.T]
 ```
 --
 ```scala
-type ApiKey = String Refined GUID
+type ApiKey = String Refined Uuid
 ```
 ## Note: enforces [8-4-4-4-12](https://github.com/fthomas/refined/pull/300/files) representation
 ---
-# Custom Validator
+# (Effectful) Custom Validator
 ```scala
 final case class OpenPort()
 
-implicit val openPortValidate: 
+implicit val openPortValidate:
   Validate.Plain[Int, OpenPort] =
   Validate.fromPartial(
-    new ServerSocket(_).close(), 
+    new ServerSocket(_).close(),
     "OpenPort", OpenPort())
 
 type AvailPort = Int Refined OpenPort
@@ -457,7 +517,7 @@ type WritableD = Path Refined WritableDir
 ```
 ---
 .medium[
-Have we pushed this too far?<br>
+Have we gone too far?<br><br>
 Refined types with side effects or reading the env are finicky]
 ---
 # Ahead-of-time config checking
@@ -487,11 +547,14 @@ object VerifyConfigMain extends App {
 - Verify config values are good
 - Verify config is good ahead of time
 ---
-.huge[Tips on using PureConfig]
+<img src="assets/pureconfig.png" style="float: right; margin: 0px">
+.huge[Pure<br>Config<br>Tips]
 ---
 # Help the compiler
 
 - Expensive compiles due to Shapeless magic
+--
+
 - Isolate config classes from the rest of your code
 - Segregate config classes *and* call loading them
 - At least separate files; maybe a namespace
@@ -502,15 +565,17 @@ object VerifyConfigMain extends App {
 
 - Compiler errors can be horrifyingly bad
   - Usually blames top-level class
+--
+
 - Work incrementally
   - Create a config class with a single member
-  - Create a unit test which loads that config 
+  - Create a unit test which loads that config
   - Add a few things
   - When test breaks, blame recent changes
 ---
 # Where config files are loaded from?
 
-- Typesafe style: `loadConfig()` 
+- Typesafe style: `loadConfig()`
    - `-D` props and env vars
    - `application.conf`
    - `resource.conf`
