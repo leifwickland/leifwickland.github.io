@@ -388,8 +388,20 @@ background-image: url("assets/godfather.jpg")
 ---
 # Configurable
 
-- Lots of different ways to load configs
-- Lots of different ways to map fields to config keys
+- Source of config data
+- Mapping of fields to config keys
+--
+
+- String conversion
+
+```scala
+implicit val b00lReader =
+  ConfigReader.fromStringOpt[Boolean] {
+    case "lit" | "yaaas" => Some(true)
+    case "basic" | "0" => Some(false)
+    case _ => None
+  }
+```
 ---
 # Extensible
 
@@ -441,7 +453,7 @@ case class ShinyConfig(
 ---
 .huge[
 [Refined](https://github.com/fthomas/refined)]
---
+
 .medium[
 Type-level refinement of allowed values
 ]
@@ -451,9 +463,11 @@ Type-level refinement of allowed values
 
 - Built-in types describe implementation bounds
 - Refinement further constrains
-- Implemented as validation at construction
+- Compile-time type checking
+- Runtime validation at construction
 
 ---
+
 ```scala
 case class RefinedConfig(
   apiKey: String Refined NonEmpty,
@@ -463,6 +477,13 @@ case class RefinedConfig(
 )
 
 pureconfig.loadConfigOrThrow[RefinedConfig]
+```
+--
+
+```scala
+(file:application.conf:2) 
+Cannot convert '"-15 seconds"':
+Predicate failed: (-15 seconds > 0)
 ```
 ---
 # Refined lets you do ever crazier stuff
@@ -574,7 +595,7 @@ object VerifyConfigMain extends App {
   - Add a few things
   - When test breaks, blame recent changes
 ---
-# Where config files are loaded from?
+# Where are config files loaded from?
 
 - Typesafe style: `loadConfig()`
    - `-D` props and env vars
